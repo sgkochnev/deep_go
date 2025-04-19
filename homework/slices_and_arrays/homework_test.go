@@ -9,42 +9,74 @@ import (
 
 // go test -v homework_test.go
 
-type CircularQueue struct {
-	values []int
-	// need to implement
+type Integer interface {
+	~int8 | ~int16 | ~int32 | ~int64 | int
 }
 
-func NewCircularQueue(size int) CircularQueue {
-	return CircularQueue{} // need to implement
+type CircularQueue[T Integer] struct {
+	values []T
+	left   int
+	right  int
+	len    int
 }
 
-func (q *CircularQueue) Push(value int) bool {
-	return false // need to implement
+func NewCircularQueue[T Integer](size int) CircularQueue[T] {
+	return CircularQueue[T]{
+		values: make([]T, size),
+		right:  size - 1,
+	}
 }
 
-func (q *CircularQueue) Pop() bool {
-	return false // need to implement
+func (q *CircularQueue[T]) Push(value T) bool {
+	if q.Full() {
+		return false
+	}
+
+	q.right = (q.right + 1) % len(q.values)
+	q.values[q.right] = value
+	q.len++
+
+	return true // need to implement
 }
 
-func (q *CircularQueue) Front() int {
-	return -1 // need to implement
+func (q *CircularQueue[T]) Pop() bool {
+	if q.Empty() {
+		return false
+	}
+
+	q.left = (q.left + 1) % len(q.values)
+	q.len--
+
+	return true
 }
 
-func (q *CircularQueue) Back() int {
-	return -1 // need to implement
+func (q *CircularQueue[T]) Front() T {
+	if q.Empty() {
+		return -1
+	}
+
+	return q.values[q.left]
 }
 
-func (q *CircularQueue) Empty() bool {
-	return false // need to implement
+func (q *CircularQueue[T]) Back() T {
+	if q.Empty() {
+		return -1
+	}
+
+	return q.values[q.right]
 }
 
-func (q *CircularQueue) Full() bool {
-	return false // need to implement
+func (q *CircularQueue[T]) Empty() bool {
+	return q.len == 0
+}
+
+func (q *CircularQueue[T]) Full() bool {
+	return q.len == len(q.values)
 }
 
 func TestCircularQueue(t *testing.T) {
 	const queueSize = 3
-	queue := NewCircularQueue(queueSize)
+	queue := NewCircularQueue[int](queueSize)
 
 	assert.True(t, queue.Empty())
 	assert.False(t, queue.Full())
