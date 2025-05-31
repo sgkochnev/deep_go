@@ -9,7 +9,7 @@ import (
 
 var (
 	ErrNumber1 = errors.New("error 1")
-	ErrNumber2 = errors.New("error 1")
+	ErrNumber2 = errors.New("error 2")
 	ErrNumber3 = errors.New("error 3")
 )
 
@@ -21,14 +21,18 @@ func main() {
 	err = multierror.Append(err, ErrNumber1)
 	err = multierror.Append(err, ErrNumber2)
 	err = fmt.Errorf("internal error: %w", err)
+	err = multierror.Append(err, ErrNumber3)
+	err = multierror.Append(err, errors.New("error 4"))
+	err = multierror.Append(err, errors.New("error 5"))
 
 	if errors.Is(err, ErrNumber1) {
-		fmt.Println("found error1 with errors.Is")
+		fmt.Println("found error1 with errors.Is", err)
 	}
 	if errors.Is(err, ErrNumber2) {
-		fmt.Println("found error2 with errors.Is")
+		fmt.Println("found error2 with errors.Is", err)
 	}
 	if errors.Is(err, ErrNumber3) {
-		fmt.Println("found error3 with errors.Is")
+		fmt.Println("found error3 with errors.Is", err)
 	}
+	fmt.Println("final: ", err)
 }

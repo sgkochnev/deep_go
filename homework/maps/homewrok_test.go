@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"reflect"
 	"testing"
 
@@ -9,36 +10,123 @@ import (
 
 // go test -v homework_test.go
 
-type OrderedMap struct {
-	// need to implement
+type node[K cmp.Ordered, V any] struct {
+	value       V
+	key         K
+	left, right *node[K, V]
+	isDel       bool
 }
 
-func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+type OrderedMap[K cmp.Ordered, V any] struct {
+	head *node[K, V]
+	len  int
 }
 
-func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
+func NewOrderedMap[K cmp.Ordered, V any]() OrderedMap[K, V] {
+	return OrderedMap[K, V]{}
 }
 
-func (m *OrderedMap) Erase(key int) {
-	// need to implement
+func (m *OrderedMap[K, V]) Insert(key K, value V) {
+	n := &node[K, V]{
+		key:   key,
+		value: value,
+	}
+
+	defer func() { m.len++ }()
+
+	if m.len == 0 {
+		m.head = n
+		return
+	}
+
+	head := m.head
+	for {
+		switch {
+		case head.key > key:
+			if head.left == nil {
+				head.left = n
+				return
+			}
+			head = head.left
+
+		case head.key < key:
+			if head.right == nil {
+				head.right = n
+				return
+			}
+			head = head.right
+
+		default:
+			if head.isDel {
+				head.value = n.value
+			}
+			return
+		}
+	}
 }
 
-func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+func (m *OrderedMap[K, V]) Erase(key K) {
+	head := m.head
+	for {
+		switch {
+		case head != nil && head.key > key:
+			head = head.left
+		case head != nil && head.key < key:
+			head = head.right
+		default:
+			if head == nil {
+				return
+			}
+
+			if head.left == nil && head.right == nil {
+				head = nil
+			} else {
+				head.isDel = true
+			}
+
+			m.len--
+
+			return
+		}
+	}
 }
 
-func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+func (m *OrderedMap[K, V]) Contains(key K) bool {
+	head := m.head
+	for {
+		switch {
+		case head != nil && head.key > key:
+			head = head.left
+		case head != nil && head.key < key:
+			head = head.right
+		default:
+			if head == nil {
+				return false
+			}
+
+			return !head.isDel && head.key == key
+		}
+	}
 }
 
-func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+func (m *OrderedMap[K, V]) Size() int {
+	return m.len
+}
+
+func (m *OrderedMap[K, V]) ForEach(action func(K, V)) {
+	// if m == nil {
+	// 	return
+	// }
+
+	// action(m.head.key, m.head.value)
+
+	// m.head.left.ForEach(action)
+	// m.head.right.ForEach(action)
+
 }
 
 func TestCircularQueue(t *testing.T) {
-	data := NewOrderedMap()
+	data := NewOrderedMap[int, int]()
 	assert.Zero(t, data.Size())
 
 	data.Insert(10, 10)
